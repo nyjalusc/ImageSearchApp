@@ -6,13 +6,24 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <!--
+    1. FragmentContainerView is recommended to be used for Fragments over FrameLayout.
+       It is a specialized layout just for fragments, handles transitions well.
+    2. If android:name is specified, FragmentContainerView will create instance of the fragment,
+       and perform FragmentTransaction to add the fragment to FragmentManager.
+    3. In our case we add NavHostFragment, it is a special fragment that contains the NavHostController.
+       We pass the navGraph to this fragment which will take care of the navigation.
+    4. Android's NavHostFragment is the starting point that manages our navigation graph. It takes
+       care of backstack, manages navigation based on current location etc.
+    5. app:defaultNavHost says that we want to intercept System Back button press. It will be handled
+       by NavHostFragment which will take action based upon the nav_graph we have provided.
+    -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host_fragment_main"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/nav_graph" /> <!-- link the nav_graph -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
