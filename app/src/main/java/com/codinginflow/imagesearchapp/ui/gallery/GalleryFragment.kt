@@ -28,7 +28,12 @@ class GalleryFragment : Fragment(R.layout.fragment_gallery) {
         binding.apply {
             // Our RV itself is not going to change its height and width
             recyclerView.setHasFixedSize(true)
-            recyclerView.adapter = adapter
+
+            // retry() is a function from Paging Adapter that will retry the failed requests
+            recyclerView.adapter = adapter.withLoadStateHeaderAndFooter(
+                header = UnsplashPhotoLoadStateAdapter { adapter.retry() },
+                footer = UnsplashPhotoLoadStateAdapter { adapter.retry() }
+            )
         }
 
         // Pass `viewLifecycleOwner` and not `this` because we want to stop observing
