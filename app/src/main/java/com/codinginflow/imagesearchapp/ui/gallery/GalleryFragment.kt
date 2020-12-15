@@ -13,18 +13,22 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class GalleryFragment : Fragment(R.layout.fragment_gallery) {
-    private val viewModel by viewModels<GalleryViewModel>()
+    private val viewModel: GalleryViewModel by viewModels()
 
     // This is to dereference the binding object once view is destroyed
     private var _binding: FragmentGalleryBinding? = null
 
     // This is to avoid using the safe call operator all the time
     // If its used outside view lifecycle it will throw NPE
+    // If you remove `get()` it will cause a crash because _binding will get assigned
+    // at the time of instantiation, the local var _binding will have a null value at that time
     private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // View is already inflated since we passed the layout in Fragment constructor
+        // We just have to bind the view with the Binding object
         _binding = FragmentGalleryBinding.bind(view)
 
         val adapter = UnsplashPhotoAdapter()
