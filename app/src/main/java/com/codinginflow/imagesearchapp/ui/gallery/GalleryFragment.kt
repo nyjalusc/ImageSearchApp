@@ -8,15 +8,17 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.paging.CombinedLoadStates
 import androidx.paging.LoadState
 import androidx.paging.PagingSource
 import com.codinginflow.imagesearchapp.R
+import com.codinginflow.imagesearchapp.data.UnsplashPhoto
 import com.codinginflow.imagesearchapp.databinding.FragmentGalleryBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class GalleryFragment : Fragment(R.layout.fragment_gallery) {
+class GalleryFragment : Fragment(R.layout.fragment_gallery), UnsplashPhotoAdapter.OnItemClickListener {
     private val viewModel: GalleryViewModel by viewModels()
 
     // This is to dereference the binding object once view is destroyed
@@ -35,7 +37,7 @@ class GalleryFragment : Fragment(R.layout.fragment_gallery) {
         // We just have to bind the view with the Binding object
         _binding = FragmentGalleryBinding.bind(view)
 
-        val adapter = UnsplashPhotoAdapter()
+        val adapter = UnsplashPhotoAdapter(this)
         binding.apply {
             // Our RV itself is not going to change its height and width
             recyclerView.setHasFixedSize(true)
@@ -84,6 +86,14 @@ class GalleryFragment : Fragment(R.layout.fragment_gallery) {
 
         // Enable options menu
         setHasOptionsMenu(true)
+    }
+
+    override fun onItemClick(photo: UnsplashPhoto) {
+        // This direction class is created by SafeArgs plugin of Navigation component.
+        // Build the project after you update nav_graph
+        // Provides compile time safety, Bundles do not!
+        val action = GalleryFragmentDirections.actionGalleryFragmentToDetailsFragment(photo)
+        findNavController().navigate(action)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
