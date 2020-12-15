@@ -5,8 +5,12 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.View
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.paging.CombinedLoadStates
+import androidx.paging.LoadState
+import androidx.paging.PagingSource
 import com.codinginflow.imagesearchapp.R
 import com.codinginflow.imagesearchapp.databinding.FragmentGalleryBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -41,6 +45,8 @@ class GalleryFragment : Fragment(R.layout.fragment_gallery) {
                 header = UnsplashPhotoLoadStateAdapter { adapter.retry() },
                 footer = UnsplashPhotoLoadStateAdapter { adapter.retry() }
             )
+
+            buttonRetry.setOnClickListener { adapter.retry() }
         }
 
         // Pass `viewLifecycleOwner` and not `this` because we want to stop observing
@@ -48,6 +54,32 @@ class GalleryFragment : Fragment(R.layout.fragment_gallery) {
         // destroyed eg. when the fragment is placed in backstack.
         viewModel.photos.observe(viewLifecycleOwner)  {
             adapter.submitData(viewLifecycleOwner.lifecycle, it)
+        }
+
+        adapter.addLoadStateListener { combinedLoadStates ->
+            binding.apply {
+                // CombinedLoadStates has 2 properties - source and mediator, here mediator is a [RemoteMediator] used for
+                // implementing paging based on multiple sources such as (Room (local source) + Network (remote source)). RemoteMediator
+                // will be responsible for executing some callbacks when certain conditions are met.
+                // Each of these LoadStates represent a combination of 3 separate properties: prepend, append and refresh
+                // Prepend - represents pages being added at pos N - 1, N - 2..1, Append is the opposite (N + 1, N + 2 ...)
+                // And refresh represents the whole PagingSource. This is why we care only about `refresh` properties LoadingState.
+                progressBar.isVisible = combinedLoadStates.source.refresh is LoadState.Loading
+                recyclerView.isVisible = combinedLoadStates.source.refresh is LoadState.NotLoading
+                buttonRetry.isVisible = combinedLoadStates.source.refresh is LoadState.Error
+                textViewError.isVisible = combinedLoadStates.source.refresh is LoadState.Error
+
+                // Empty view - Could be because we have reached end of pagination or we don't have any items to show
+                // Added LoadState.NotLoading so that we do not show the empty view during first load.
+                if (combinedLoadStates.source.refresh is LoadState.NotLoading &&
+                        combinedLoadStates.append.endOfPaginationReached &&
+                        adapter.itemCount < 1) {
+                    recyclerView.isVisible = false
+                    textViewEmpty.isVisible = true
+                } else {
+                    textViewEmpty.isVisible = false
+                }
+            }
         }
 
         // Enable options menu
