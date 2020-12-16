@@ -1,10 +1,8 @@
 package com.codinginflow.imagesearchapp.ui.gallery
 
+import androidx.hilt.Assisted
 import androidx.hilt.lifecycle.ViewModelInject
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import androidx.paging.cachedIn
 import com.codinginflow.imagesearchapp.data.UnsplashRepository
 
@@ -12,10 +10,13 @@ import com.codinginflow.imagesearchapp.data.UnsplashRepository
  * Dagger Hilt has special annotation for ViewModel injection
  */
 class GalleryViewModel @ViewModelInject constructor(
-    private val repository: UnsplashRepository
+    private val repository: UnsplashRepository,
+    @Assisted state: SavedStateHandle
 ) : ViewModel() {
-
-    private val currentQuery = MutableLiveData(DEFAULT_QUERY)
+    // Similar to saved state, this creates a LiveData from savedState. But it is fully backed by
+    // savedState meaning we do not have to do anything special to put the latest value in the savedState
+    // It happens automatically. This way we can persist state beyond process death.
+    private val currentQuery = state.getLiveData(CURRENT_QUERY, DEFAULT_QUERY)
 
     val photos = currentQuery.switchMap { queryString ->
         // You cannot load from a PagingSource the same PagingData so we need to cache this page within
@@ -28,6 +29,7 @@ class GalleryViewModel @ViewModelInject constructor(
     }
 
     companion object {
+        private const val CURRENT_QUERY = "current_query"
         private const val DEFAULT_QUERY = "cats"
     }
 }
